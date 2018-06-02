@@ -15,10 +15,13 @@ module.exports = appInfo => {
         host: '47.89.246.57',
         port: '3306',
         user: 'root',
-        password: 'mysql2018',
+        password: 'admin2018',
         database: 'tx_db'
       },
-      USER_DB: 'tx_user' //用户基本信息表
+      USER_DB: 'tx_user', //用户基本信息表
+      TRIP_DB: 'tx_trip', //行程基本信息表
+      APPLY_DB: 'tx_apply', //申请记录表
+      TRIP_COMMENT_DB: 'tx_trip_comment' //基于行程的对用户的评论
     },
     redis: { // redis设置
       client: {
