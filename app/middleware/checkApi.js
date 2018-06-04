@@ -1,9 +1,8 @@
 'use strict';
 /* 如果是来自api连接的请求则需要检查来源 */
 const platforms = ['wechat'];
-const version = 'v1';
 module.exports = options => {
-    const reg = new RegExp(`^/${version}`);
+    const reg = new RegExp(`^/${options.version}`);
     return async function checkApi(ctx, next){
         if(reg.test(ctx.path)){
             const { platform, uid, page } = ctx.header;
