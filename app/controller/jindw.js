@@ -25,7 +25,6 @@ class JindwController extends Controller {
         this.ctx.body = await jindw.queryTripList(offset, pageSize);
       } catch (error) {
         console.log(error);
-        this.ctx.status = 500;
         this.ctx.body = {code: 50000, msg: '服务器错误'};
       }
     }else{
@@ -33,7 +32,6 @@ class JindwController extends Controller {
         this.ctx.body = await jindw.queryTripListByWord(keyword, offset, pageSize);
       } catch (error) {
         console.log(error);
-        this.ctx.status = 500;
         this.ctx.body = {code: 50000, msg: '服务器错误'};
       }
       // 热词日志
@@ -64,13 +62,36 @@ class JindwController extends Controller {
       }
     }catch(error){
       console.log(error);
-      this.ctx.status = 500;
       this.ctx.body = {code: 50000, msg: '服务器错误'};
     }
   }
   // 申请参团
   async requestJoin(){
-
+    const { jindw } = this.ctx.service;
+    const { trip_id, user_id, publisher_id, user_apply_content } = this.ctx.request.body;
+    try {
+      await jindw.insertUserApply(trip_id, user_id, publisher_id, user_apply_content);
+      this.ctx.body = {code: 20000, msg: '申请成功'};
+    } catch (error) {
+      let body = null;
+      switch(error.message){
+        case '1':
+          body = {code: 40001, msg: '不存在的用户'};
+          break;
+        case '2':
+          body = {code: 40001, msg: '申请记录已经存在'};
+          break;
+        case '3':
+          body = {code: 40001, msg: '申请失败'};
+          break;
+        case '4':
+          body = {code: 40001, msg: '旅行记录不可用'};
+          break;
+        default:
+          body = {code: 40001, msg: '未知错误'};
+      }
+      this.ctx.body = body;
+    }
   }
   // 获取申请列表(对于发起人)
   async queryTripApplyList(){
