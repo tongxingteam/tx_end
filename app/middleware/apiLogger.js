@@ -2,7 +2,7 @@
 
 /* 接口调用日志 */
 const moment = require('moment');
-const uuidTime = require('uuid/v1');
+const utiluuid = require('../util/uuid');
 const Logger = require('egg-logger').Logger;
 const FileTransport = require('egg-logger').FileTransport;
 const loggerReq = new Logger();
@@ -21,7 +21,7 @@ module.exports = options => {
     const { uid, page, platform } = ctx.header;
     const userAgent = ctx.header['user-agent'];
     const { ip, url, method } = ctx;
-    const logFlag = uuidTime();
+    const logFlag = utiluuid.uuid;
     const logReqTime = moment().format();
     loggerReq.info(
       [

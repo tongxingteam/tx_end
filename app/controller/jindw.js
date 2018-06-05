@@ -12,7 +12,7 @@ loggerWord.set('file', new FileTransport({
 const Controller = require('egg').Controller;
 
 class JindwController extends Controller {
-  // 获取用户的数量
+  // 获取行程列表
   async queryTripListByWord() {
     // 获取参数
     const { jindw } = this.ctx.service;
@@ -53,7 +53,20 @@ class JindwController extends Controller {
   }
   // 行程详情
   async queryTripDetail(){
-
+    const { jindw } = this.ctx.service;
+    const { trip_id, user_id } = this.ctx.request.body;
+    try{
+      const [trip, apply_status] = await Promise.all([jindw.queryTripDetail(trip_id), jindw.queryUserStatusToTrip(user_id, trip_id)]);
+      if(trip === null){
+        this.ctx.body = {code: 40004, msg: '不存在的记录'};
+      }else{
+        this.ctx.body = {...trip, apply_status_to_add: apply_status}
+      }
+    }catch(error){
+      console.log(error);
+      this.ctx.status = 500;
+      this.ctx.body = {code: 50000, msg: '服务器错误'};
+    }
   }
   // 申请参团
   async requestJoin(){
