@@ -20,7 +20,7 @@ class FanhlController extends Controller {
         }else{
           //未知错误导致的拒绝失败
           this.ctx.status = 500;
-          this.ctx.body = {code:50000,msg:"服务器错误"}
+          this.ctx.body = {code:20010,msg:"拒绝失败"}
         }
       }catch(error){
         console.log(error)

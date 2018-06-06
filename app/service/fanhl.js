@@ -10,12 +10,13 @@ class FanhlService extends Service {
         let changeStatus = await mysql.update(APPLY_DB, 
             {
                 apply_status_to_add:2,
-                 apply_status_to_user:1
+								apply_status_to_user:1
             },{
                 where: {
                     apply_trip_id, 
                     user_id, 
-                    apply_publisher_id,
+										apply_publisher_id,
+										apply_active:1
                 }
             })
         return changeStatus.affectedRows;
