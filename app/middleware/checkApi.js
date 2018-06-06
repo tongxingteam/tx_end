@@ -11,6 +11,13 @@ module.exports = options => {
                 ctx.body = {code: 40001, msg: '非法请求'};
             }else{
                 await next();
+                if(ctx.status === 200 && !ctx.body.code){
+                    ctx.body = {
+                        code: 20000,
+                        msg: 'success',
+                        data: ctx.body
+                    };
+                }
             }
         }else{
             ctx.status = 404;
