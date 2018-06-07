@@ -87,7 +87,7 @@ class JindwService extends Service {
         const [user, publisher, apply] = await Promise.all([
             this.queryUserInfo(['user_wx_name', 'user_wx_portriat'], user_id),
             this.queryUserInfo(['user_wx_name', 'user_wx_portriat'], publisher_id),
-            this.queryUserStatusToTrip(user_id, 'trip_id')
+            this.queryUserStatusToTrip(user_id, trip_id)
         ]);
         if(!user || !publisher){
             throw new Error(1);
@@ -107,15 +107,108 @@ class JindwService extends Service {
                     apply_create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
                     user_apply_content
                 });
-                const update = await conn.update(TRIP_DB, {trip_apply_news: 1}, {where:{trip_id,trip_active:1,trip_status:1}});
                 if(insert.affectedRows === 0){
                     throw new Error(3);
-                }else if(update.affectedRows === 0){
+                }
+                const update = await conn.update(TRIP_DB, {trip_apply_news: 1}, {where:{trip_id,trip_active:1,trip_status:1}});
+                if(update.affectedRows === 0){
                     throw new Error(4);
                 }else{
                     return;
                 }
               }, this.ctx);
+        }
+    }
+    // 获取行程的申请列表
+    async queryTripApplyList(trip_id, offset, limit){
+        const { APPLY_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        const columns = [
+            'apply_id',
+            'user_id',
+            'user_wx_name',
+            'user_wx_portriat',
+            'apply_status_to_add',
+            "date_format(apply_create_time, '%Y-%m-%d %H:%i:%s') as apply_create_time"
+        ];
+        return await mysql.query(`select ${columns.join(',')} from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !=user_id and apply_active = 1 order by apply_create_time desc limit ${offset},${limit}`);
+    }
+    // 同意参团
+    async agreeJoin(apply_id){
+        const { APPLY_DB, TRIP_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        const apply_columns = [
+            'apply_trip_id',
+            'user_id',
+            'user_wx_name',
+            'user_wx_portriat',
+            'apply_status_to_add',
+            'apply_active',
+            'apply_trip_change_publisher'
+        ];
+        const apply_info = await mysql.queryOne(`select ${apply_columns.join(',')} from ${APPLY_DB} where apply_id='${apply_id}'`);
+        if(apply_info === null){
+            throw new Error(1); // 无对应记录
+        }else if(apply_info.apply_active === 0){
+            throw new Error(2); // 记录不可用
+        }else if(apply_info.apply_trip_change_publisher === 1){
+            throw new Error(3); // 行程正在易主，不可操作
+        }else if(apply_info.apply_status_to_add !== 0){
+            throw new Error(5); // 申请人不在申请中...
+        }
+        const trip_info = await mysql.queryOne(`select trip_member_info,trip_status,trip_active from ${TRIP_DB} where trip_id='${apply_info.apply_trip_id}'`);
+        if(trip_info === null){
+            throw new Error(1); // 无对应记录
+        }else if(trip_info['trip_active'] === 0){
+            throw new Error(2); // 记录不可用
+        }else if(trip_info['trip_status'] !==1){
+            throw new Error(4); // 行程正在进行中，不可操作
+        }
+        let user_info = `{"id":"${apply_info.user_id}","user_wx_name":"${apply_info.user_wx_name}","user_wx_portriat":"${apply_info.user_wx_portriat}"}`;
+        if(trip_info.trip_member_info.length === 0){
+            user_info = `[${user_info}]`;
+        }else{
+            user_info = `${trip_info.trip_member_info.slice(0, -1)},${user_info}]`;
+        }
+        await mysql.beginTransactionScope(async conn => {
+            const update_apply = await conn.update(APPLY_DB, {
+                apply_status_to_add: 1,
+                apply_status_to_publisher: 0,
+                apply_status_to_user: 1
+            }, {
+                where: {apply_id: apply_id}
+            });
+            if(update_apply.affectedRows === 0){
+                throw new Error();
+            }
+            const update_trip = await conn.update(TRIP_DB, {
+                trip_member_info: user_info
+            }, {
+                where: {trip_id: apply_info.apply_trip_id}
+            });
+            if(update_trip.affectedRows === 0){
+                throw new Error();
+            }else{
+                return;
+            }
+        });
+    }
+    // 统计用户新消息
+    async myNews(user_id){
+        const { TRIP_DB, APPLY_DB, TRIP_COMMENT_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        const [trip_publish, trip_apply, trip_comment, trip_follow] = await Promise.all([
+            mysql.query(`select count(trip_id) as trip_publish from ${TRIP_DB} where publish_user_id='${user_id}' and trip_active=1 and trip_apply_news=1`),
+            mysql.query(`select count(apply_id) as trip_apply from ${APPLY_DB} where user_id='${user_id}' and apply_active=1 and apply_status_to_user=1`),
+            mysql.query(`select count(comment_id) as trip_comment from ${TRIP_COMMENT_DB} where to_user_id='${user_id}' and trip_comment_active=1 and trip_comment_see=1`),
+            mysql.query(`select count(apply_id) as trip_follow from ${APPLY_DB} where user_id='${user_id}' and apply_active=1 and apply_trip_is_edit=1 or apply_trip_change_publisher=1`)
+        ]);
+        return {
+            trip_publish, // 我发布的
+            trip_apply, // 我申请的
+            trip_comment, // 对我的评论
+            trip_follow
+            // 我同行的
         }
     }
 }
