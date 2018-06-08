@@ -1,6 +1,8 @@
 'use strict';
 
 const Service = require('egg').Service;
+const uuid = require('../util/uuid');
+const moment = require('moment');
 
 class FanhlService extends Service {
     //根据用户id,行程id,发起人id修改用户的申请状态
@@ -39,6 +41,80 @@ class FanhlService extends Service {
     //退出申请修改行程表状态
     async tripQuit(where,options){
 
+
+    }
+
+    // 查询用户基本信息
+    async queryUserInfo(columns, user_id){
+        const { USER_DB } = this.config.mysql;
+        const { mysql } = this.app;
+       return await mysql.queryOne(`select ${columns.join(',')} from ${USER_DB} where user_id = '${user_id}' and user_active = 1`);
+    }
+
+    //新建评论表
+    async insertTripComment(trip_id,trip_end_location,trip_end_time,from_user_id,to_user_id,trip_comment_content){
+        const [fromUser,toUser] = await Promise.all([
+            this.queryUserInfo(['*'], from_user_id),
+            this.queryUserInfo(['*'], to_user_id),
+        ])
+
+        const { TRIP_COMMENT_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        const comment_id = uuid.uuid;
+        const insertStatus = await mysql.insert(TRIP_COMMENT_DB,{
+            comment_id,
+            trip_end_location,
+            trip_end_time,
+            trip_id,
+            from_user_id:fromUser.user_id,
+            from_user_wx_name:fromUser.user_wx_name,
+            from_user_wx_portriat:fromUser.user_wx_portriat,
+            to_user_id:toUser.user_id,
+            to_user_wx_name:toUser.user_wx_name,
+            to_user_wx_portriat:toUser.user_wx_portriat,
+            trip_comment_content,
+            trip_comment_active:1,
+            trip_comment_create_time:moment().format('YYYY-MM-DD HH:mm:ss'),
+            trip_comment_see:1
+        })
+
+        return insertStatus.affectedRows;
+    }
+
+    //新建行程列表
+    async insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,trip_status){
+        
+        const publishInfo = await this.queryUserInfo(['*'], trip_publish_user_id);
+        console.log(trip_status,555555555555555)
+        const trip_member_info = `[{id:${publishInfo.trip_publish_user_id},user_wx_name:${publishInfo.user_wx_name},user_wx_portriat:${publishInfo.user_wx_portriat}}]`
+        const { TRIP_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        const trip_id = uuid.uuid;
+        const insertStatus = await mysql.insert(TRIP_DB,{
+            trip_id,
+            trip_start_location,
+            trip_end_location,
+            trip_start_time,
+            trip_end_time,
+            trip_member_count,
+            trip_other_desc,
+            trip_status,
+            publish_user_id:trip_publish_user_id,
+            publish_user_wx_name:publishInfo.user_wx_name,
+            publish_user_wx_portriat:publishInfo.user_wx_portriat,
+            trip_create_time:moment().format('YYYY-MM-DD HH:mm:ss'),
+            trip_active:1,
+            trip_member_info,
+            trip_edit_time:moment().format('YYYY-MM-DD HH:mm:ss'),
+            trip_apply_news:0,
+            trip_comment_news:0,
+            trip_change_publisher:0
+        })
+        return insertStatus.affectedRows
+    }
+
+    //更新行程表
+    async updateTrip(){
 
     }
 }
