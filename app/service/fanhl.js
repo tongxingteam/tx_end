@@ -9,39 +9,46 @@ class FanhlService extends Service {
     async changeApplyStatus(apply_trip_id, user_id, apply_publisher_id) {
         const { APPLY_DB } = this.config.mysql;
         const { mysql } = this.app;
-        let changeStatus = await mysql.update(APPLY_DB, {
-            apply_status_to_add: 2,
-            apply_status_to_user: 1
-        }, {
-            where: {
-                apply_trip_id,
-                user_id,
-                apply_publisher_id,
-                apply_active: 1
-            }
-        })
-        return changeStatus.affectedRows;
-    }
-
-    //根据某个条件查找申请表
-    async applySerch(where,options){
-
+        const where = {apply_trip_id,user_id,apply_publisher_id,apply_active: 1};
+        const options = {apply_status_to_add: 2,apply_status_to_user: 1};
+        return await this.updateApply(where,options)
     }
 
     //根据某个条件查询行程表
-    async tripSerch(where,options){
-
+    async serchTtrip(columns,trip_id){
+        const { TRIP_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        const trip =  await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id = '${trip_id}' and trip_active = 1`);
+        return trip;
     }
 
-    // 退出申请修改申请表状态
-    async applyQuit(where,options){
-
-
+    // 修改申请表
+    async updateApply(where,options){
+        const { APPLY_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        let changeStatus = await mysql.update(APPLY_DB, options, { where })
+        return changeStatus.affectedRows;
     }
-    //退出申请修改行程表状态
-    async tripQuit(where,options){
 
+    //修改行程表
+    async updateTrip(where,options){
+        const { TRIP_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        let changeStatus = await mysql.update(TRIP_DB, options, { where })
+        return changeStatus.affectedRows;
+    }
 
+    async quitTrip(applyWhere,applyOptions,tripWhere,tripOptions){
+        const [applyStatue,tripMemberInfo] = await Promise.all([
+            this.updateApply(applyWhere, applyOptions),
+            this.serchTtrip(['trip_member_info'], tripWhere.trip_id),
+        ]);
+
+        let re = new RegExp('\{\"id\"\:"'+applyWhere.user_id+'"[^\}]*\}\,?','i');
+        console.log(re)
+        let trip_member_info = tripMemberInfo.trip_member_info.replace(re,"");
+        console.log(trip_member_info)
+        return await this.updateTrip({trip_id:tripWhere.trip_id},{trip_member_info,...tripOptions})
     }
 
     // 查询用户基本信息
@@ -85,8 +92,7 @@ class FanhlService extends Service {
     async insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,trip_status){
         
         const publishInfo = await this.queryUserInfo(['*'], trip_publish_user_id);
-        console.log(trip_status,555555555555555)
-        const trip_member_info = `[{id:${publishInfo.trip_publish_user_id},user_wx_name:${publishInfo.user_wx_name},user_wx_portriat:${publishInfo.user_wx_portriat}}]`
+        const trip_member_info = `[{"id":"${trip_publish_user_id}","user_wx_name":"${publishInfo.user_wx_name}","user_wx_portriat":"${publishInfo.user_wx_portriat}"}]`
         const { TRIP_DB } = this.config.mysql;
         const { mysql } = this.app;
         const trip_id = uuid.uuid;
@@ -111,11 +117,6 @@ class FanhlService extends Service {
             trip_change_publisher:0
         })
         return insertStatus.affectedRows
-    }
-
-    //更新行程表
-    async updateTrip(){
-
     }
 }
 

@@ -37,16 +37,28 @@ class FanhlController extends Controller {
       this.ctx.status = 400;
       this.ctx.body = {code:40000,msg:"参数错误"}
     }else{
+      let tripWhere = {trip_id,trip_active:1};
+      let applyWhere = {apply_trip_id:trip_id,user_id,apply_publisher_id:publisher_id,apply_active:1};
+      let applyOptions = {apply_status_to_add:3};
+      let tripOptions = {}
       //发起人退出
-      if(trip_id === user_id){
-        let applyWhere = {apply_trip_id:trip_id,user_id:user_id,apply_publisher_id:publisher_id,apply_active:1};
-        let applyOptions = {apply_status_to_add:3};
-        let tripWhere = {trip_id,trip_active:1};
-      }else{
-      //非发起人退出
-        let applyWhere = {apply_trip_id:trip_id,user_id:user_id,apply_publisher_id:publisher_id,apply_active:1};
-        let applyOptions = {apply_status_to_add:3};
-        let tripWhere = {trip_id,trip_active:1};
+      if(publisher_id === user_id){
+        applyOptions = {apply_status_to_add:3,apply_trip_change_publisher:1};
+        tripOptions = {trip_change_publisher:1}
+      }
+      try{
+        let quitStatus = await fanhl.quitTrip(applyWhere,applyOptions,tripWhere,tripOptions)
+        if(quitStatus == 1){
+          this.ctx.status = 200;
+          this.ctx.body = {code:20000,msg:'退出成功'}
+        }else{
+          this.ctx.status = 500;
+          this.ctx.body = {code:50010,msg:"退出失败"}
+        }
+      }catch(error){
+        console.log(error)
+        this.ctx.status = 500;
+        this.ctx.body = {code:50000,msg:"服务器错误"}
       }
     }
   }
@@ -70,61 +82,70 @@ class FanhlController extends Controller {
       this.ctx.body = {code:50000,msg:"服务器错误"}
     }
   }
-  // 发布行程
+  // 直接发布行程
   async publishTrip(){
     const { fanhl } = this.ctx.service;
-    const {trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
-    
+    const { trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
+      
     let newTime = (new Date()).valueOf();
     let trip_start_timeC = (new Date(trip_start_time)).valueOf()
     let trip_end_timeC = (new Date(trip_end_time)).valueOf()
-    let trip_status = 0;
-    
+    let trip_status = 1;
+
     //结束
     if(newTime > trip_end_timeC){
-      trip_status = 2;
+      trip_status = 3;
     }
     
-    //
+    //进行中
     if(newTime > trip_start_timeC && newTime < trip_end_timeC){
-      trip_status = 1;
+      trip_status = 2;
     }
 
-    //草稿过来的发布
-    if(trip_id.length != 2){
-      console.log(123)
-    }else{
-    //直接发布
+    try{
+      let commentStatus = await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,trip_status)
+      
+      if(commentStatus == 1){
+        this.ctx.status = 200;
+        this.ctx.body = {code:20000,msg:'发布成功'}
+      }else{
+        this.ctx.status = 500;
+        this.ctx.body = {code:50010,msg:"发布失败"}
+      }
+    } catch(error){
+      console.log(error)
+      this.ctx.status = 500;
+      this.ctx.body = {code:50000,msg:"服务器错误"}
+    }
+  }
+  // 草稿的保存
+  async saveTrip(){
+    const { fanhl } = this.ctx.service;
+    const { trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
+    //更新
+    if(trip_id.length !== 2){
+        const where = { trip_id,trip_active: 1}
+        const options = {trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_status:0}
       try{
-        let commentStatus = await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,trip_status)
-        
-        if(commentStatus == 1){
+        let updateTripStatus = await fanhl.updateTrip(where,options)
+        if(insertTripStatus == 1){
           this.ctx.status = 200;
-          this.ctx.body = {code:20000,msg:'发布成功'}
+          this.ctx.body = {code:20000,msg:'保存成功'}
         }else{
           this.ctx.status = 500;
-          this.ctx.body = {code:50010,msg:"发布失败"}
+          this.ctx.body = {code:50010,msg:"保存失败"}
         }
-      } catch(error){
+      }catch(error){
         console.log(error)
         this.ctx.status = 500;
         this.ctx.body = {code:50000,msg:"服务器错误"}
       }
-    }
-
-    
-  }
-  // 编辑之后发布(包括我的草稿)
-  async saveTrip(){
-    const { fanhl } = this.ctx.service;
-    const {trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
-    if(trip_id.length != 2){
-      
     }else{
+    //新增
       try{
-        let commentStatus = await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,-1)
+        let insertTripStatus = await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,0)
         
-        if(commentStatus == 1){
+        if(insertTripStatus == 1){
           this.ctx.status = 200;
           this.ctx.body = {code:20000,msg:'保存成功'}
         }else{
@@ -137,6 +158,45 @@ class FanhlController extends Controller {
         this.ctx.body = {code:50000,msg:"服务器错误"}
       }
     }
+
+  }
+
+  // 草稿的发布
+  async publishSaveTrip(){
+    const { fanhl } = this.ctx.service;
+    const { trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
+    let newTime = (new Date()).valueOf();
+    let trip_start_timeC = (new Date(trip_start_time)).valueOf()
+    let trip_end_timeC = (new Date(trip_end_time)).valueOf()
+    let trip_status = 1;
+
+    //结束
+    if(newTime > trip_end_timeC){
+      trip_status = 3;
+    }
+    
+    //进行中
+    if(newTime > trip_start_timeC && newTime < trip_end_timeC){
+      trip_status = 2;
+    }
+
+    const where = { trip_id,trip_active: 1}
+    const options = {trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id}
+
+    try{
+      let updateTripStatus = await fanhl.updateTrip(where,options)
+    if(updateTripStatus == 1){
+      this.ctx.status = 200;
+      this.ctx.body = {code:20000,msg:'发布成功'}
+    }else{
+      this.ctx.status = 500;
+      this.ctx.body = {code:50010,msg:"发布失败"}
+    }
+  }catch(error){
+    console.log(error)
+    this.ctx.status = 500;
+    this.ctx.body = {code:50000,msg:"服务器错误"}
+  }
   }
 }
 

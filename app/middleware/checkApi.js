@@ -20,6 +20,7 @@ module.exports = options => {
                 }
             }
         }else{
+            console.log(404)
             ctx.status = 404;
             ctx.body = {code: 40004, msg: '资源不存在'};
         }
