@@ -20,6 +20,9 @@ module.exports = app => {
   /**
    * 范海亮 实现的接口
   */
+
+  router.get(`/${config.version}/list`, controller.fanhl.list);
+
     // 发布人不同意参团
   router.post(`/${config.version}/notAgreeJoin`, controller.fanhl.notAgreeJoin);
     // 退出行程团

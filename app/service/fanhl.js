@@ -30,6 +30,12 @@ class FanhlService extends Service {
         return changeStatus.affectedRows;
     }
 
+    async list(){
+        const { USER_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        return await mysql.select('USER_DB');
+    }
+
     //修改行程表
     async updateTrip(where,options){
         const { TRIP_DB } = this.config.mysql;

@@ -29,6 +29,13 @@ class FanhlController extends Controller {
       }
     }
   }
+
+  async list(){
+    let quitStatus = await fanhl.list()
+    this.ctx.status = 200;
+    this.ctx.body = {code:20000,msg:quitStatus}
+  }
+
   // 退出行程团
   async leave(){
     const { fanhl } = this.ctx.service;
