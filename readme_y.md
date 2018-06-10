@@ -142,6 +142,112 @@ response:
     }
 }
 
+<!-- 我的申请记录列表接口 -->
+request:
+url: http://localhost:7001/v1/queryMyRequestList
+method: post
+Headers: {
+    "Content-Type": "application/json",
+    "platform": "wechat",
+    "uid": "123",
+    "page": "123"
+}
+param: {
+	"user_id": "a019406067d511e89c437132ae595195", 
+	"currentPage": 1,
+	"pageSize": 10
+}
+
+response:
+{
+    "code": 20000,
+    "msg": "success",
+    "data": {
+    "total": 1,
+    "apply": [
+            {
+                "apply_id": "3c179a00695011e8aa8be57159244964",
+                "apply_trip_id": "a123",
+                "user_id": "a019406067d511e89c437132ae595195",
+                "user_wx_name": "十里桃花",
+                "user_wx_portriat": "https://imgs.wx.com/userId=098765",
+                "apply_publisher_id": "b019406067d511e89c437132ae595195",
+                "apply_status_to_add": 2,
+                "apply_create_time": "2018-06-05T06:09:56.000Z",
+                "apply_active": 1,
+                "apply_publisher_confirm": 0,
+                "apply_follow_confirm": 0,
+                "apply_status_to_publisher": 0,
+                "apply_status_to_user": 1,
+                "apply_trip_is_edit": 0,
+                "user_apply_content": "想去天津",
+                "apply_trip_change_publisher": 0,
+                "trip_id": "a123",
+                "trip_start_location": "北京",
+                "trip_end_location": "天津",
+                "trip_start_time": "2018-06-04T16:00:00.000Z",
+                "trip_end_time": "2018-06-13T16:00:00.000Z",
+                "trip_member_count": 5,
+                "trip_other_desc": "有车有房",
+                "trip_status": 1,
+                "publish_user_id": "b019406067d511e89c437132ae595195",
+                "publish_user_wx_name": "三生三世",
+                "publish_user_wx_portriat": "https://imgs.wx.com/userId=asdasd32432432",
+                "trip_create_time": "2018-06-04T11:33:20.000Z",
+                "trip_active": 1,
+                "trip_member_info": "[]",
+                "trip_edit_time": "2018-06-27T16:00:00.000Z",
+                "trip_apply_news": 0,
+                "trip_comment_news": 0,
+                "trip_change_publisher": 1
+            }
+        ]
+    }
+}
+
+<!-- 对我的评论列表接口 -->
+request:
+url: http://localhost:7001/v1/queryCommentToMe
+method: post
+Headers: {
+    "Content-Type": "application/json",
+    "platform": "wechat",
+    "uid": "123",
+    "page": "123"
+}
+param: {
+	"user_id": "b019406067d511e89c437132ae595195", 
+	"currentPage": 1,
+	"pageSize": 10
+}
+
+response:
+{
+    "code": 20000,
+    "msg": "success",
+    "data": {
+        "total": 1,
+        "comment": [
+            {
+                "comment_id": "7bd2b1e06a2511e89b6c9dab4e5b5912",
+                "trip_id": "a123",
+                "trip_end_time": "2018-06-13T16:00:00.000Z",
+                "trip_end_location": "天津",
+                "from_user_id": "a019406067d511e89c437132ae595195",
+                "from_user_wx_name": "十里桃花",
+                "from_user_wx_portriat": "https://imgs.wx.com/userId=098765",
+                "to_user_id": "b019406067d511e89c437132ae595195",
+                "to_user_wx_name": "三生三世",
+                "to_user_wx_portriat": "https://imgs.wx.com/userId=asdasd32432432",
+                "trip_comment_content": "人特别nice",
+                "trip_comment_create_time": "2018-06-07T07:36:25.000Z",
+                "trip_comment_active": 1,
+                "trip_comment_see": 1
+            }
+        ]
+    }
+}
+
 
 <!-- 问题 -->
 1.申请记录中的对于参加人是否有新状态（apply_status_to_user）字段，参与人有多个，一个数字无法表示，应该每个参与人绑定一个状态
