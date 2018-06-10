@@ -31,6 +31,7 @@ class FanhlController extends Controller {
   }
 
   async list(){
+    const { fanhl } = this.ctx.service;
     let quitStatus = await fanhl.list()
     this.ctx.status = 200;
     this.ctx.body = {code:20000,msg:quitStatus}
