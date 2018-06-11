@@ -258,3 +258,6 @@ response:
 // FROM tx_apply
 // INNER JOIN tx_trip
 // ON tx_trip.trip_id=tx_apply.apply_trip_id;`
+
+<!-- 待开发 -->
+1.登录状态
