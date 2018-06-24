@@ -26,10 +26,14 @@ class JindwService extends Service {
             offset: offset,
             order: [['trip_start_time','desc']]
         });
-        return list.map((trip)=>{
-            trip.trip_end_location = JSON.parse(trip.trip_end_location);
-            return trip;
-        });
+        const count = await mysql.query(`select count(trip_id) as trip_count from ${TRIP_DB} where trip_status = 1 and trip_active = 1`);
+        return {
+                list: list.map((trip)=>{
+                    trip.trip_end_location = JSON.parse(trip.trip_end_location);
+                    return trip;
+                }),
+                count: count
+            }
     }
     // 根据热词搜索行程列表
     async queryTripListByWord(keyword, offset = 0, limit = 10){
@@ -52,10 +56,14 @@ class JindwService extends Service {
                     offset: offset,
                     limit: limit
             });
-        return list.map((trip)=>{
-            trip.trip_end_location = JSON.parse(trip.trip_end_location);
-            return trip;
-        });    
+        const count = await mysql.query(`select count(trip_id) as trip_count from ${TRIP_DB} where trip_status = 1 and trip_active = 1 and LOCATE(${keyword}, 'trip_start_location')>0 or LOCATE(${keyword}, 'trip_end_location')>0 or LOCATE(${keyword}, 'trip_other_desc')>0 order by trip_start_time desc limit ${offset},${limit}`);
+        return {
+                list: list.map((trip)=>{
+                    trip.trip_end_location = JSON.parse(trip.trip_end_location);
+                    return trip;
+                }),
+                count: count
+            }    
     }
     // 查询行程详情
     async queryTripDetail(trip_id){
