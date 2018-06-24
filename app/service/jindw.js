@@ -29,7 +29,6 @@ class JindwService extends Service {
         const count = await mysql.query(`select count(trip_id) as trip_count from ${TRIP_DB} where trip_status = 1 and trip_active = 1`);
         return {
                 list: list.map((trip)=>{
-                    trip.trip_end_location = JSON.parse(trip.trip_end_location);
                     trip.trip_create_time = trip.trip_create_time.slice(0, 10);
                     return trip;
                 }),
@@ -57,10 +56,9 @@ class JindwService extends Service {
                     offset: offset,
                     limit: limit
             });
-        const count = await mysql.query(`select count(trip_id) as trip_count from ${TRIP_DB} where trip_status = 1 and trip_active = 1 and LOCATE(${keyword}, 'trip_start_location')>0 or LOCATE(${keyword}, 'trip_end_location')>0 or LOCATE(${keyword}, 'trip_other_desc')>0 order by trip_start_time desc limit ${offset},${limit}`);
+        const count = await mysql.query(`select count(trip_id) as trip_count from ${TRIP_DB} where trip_status = 1 and trip_active = 1 and LOCATE('${keyword}', 'trip_start_location')>0 or LOCATE('${keyword}', 'trip_end_location')>0 or LOCATE('${keyword}', 'trip_other_desc')>0 order by trip_start_time desc limit ${offset},${limit}`);
         return {
                 list: list.map((trip)=>{
-                    trip.trip_end_location = JSON.parse(trip.trip_end_location);
                     trip.trip_create_time = trip.trip_create_time.slice(0, 10);
                     return trip;
                 }),
@@ -153,7 +151,12 @@ class JindwService extends Service {
             'apply_status_to_add',
             "date_format(apply_create_time, '%Y-%m-%d %H:%i:%s') as apply_create_time"
         ];
-        return await mysql.query(`select ${columns.join(',')} from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !=user_id and apply_active = 1 order by apply_create_time desc limit ${offset},${limit}`);
+        const count = await mysql.query(`select count(apply_id) as apply_count from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !=user_id and apply_active = 1`);
+        const list =  await mysql.query(`select ${columns.join(',')} from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !=user_id and apply_active = 1 order by apply_create_time desc limit ${offset},${limit}`);
+        return {
+            list,
+            count: count[0]['apply_count']
+        }
     }
     // 同意参团
     async agreeJoin(apply_id){
