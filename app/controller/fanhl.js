@@ -93,7 +93,6 @@ class FanhlController extends Controller {
       }
     } catch(error){
       console.log(error)
-      this.ctx.status = 500;
       this.ctx.body = {code:50000,msg:"服务器错误"}
     }
   }
@@ -105,13 +104,13 @@ class FanhlController extends Controller {
     try{
       await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id);
     } catch(error){
-      this.ctx.status = 500;
       const { message } = error;
       if(message === '1'){
         this.ctx.body = {code:50000,msg:"用户信息错误"};
       }else{
         this.ctx.body = {code:50000,msg:"发布失败"}
       }
+      console.error(error);
       return;
     }
     this.ctx.body = {code: 20000, msg: '发布成功'};
