@@ -17,12 +17,26 @@ loggerRes.set('file', new FileTransport({
 }));
 
 module.exports = options => {
-  return async function apiLogger(ctx, next){
-    const { uid, page, platform } = ctx.header;
+  return async function apiLogger(ctx, next) {
+    const {
+      uid,
+      page,
+      platform
+    } = ctx.header;
     const userAgent = ctx.header['user-agent'];
-    const { ip, url, method } = ctx;
+    const {
+      ip,
+      url,
+      method
+    } = ctx;
     const logFlag = utiluuid.uuid;
     const logReqTime = moment().format();
+
+    // 判断是否有页面标识
+    let pageSign = ctx.header['page'];
+    if (!pageSign) {
+      pageSign = false;
+    }
     loggerReq.info(
       [
         logFlag,
@@ -33,9 +47,17 @@ module.exports = options => {
         method,
         uid,
         platform,
-        userAgent
+        userAgent,
+        pageSign
       ].join('|')
     );
+    if (pageSign) {
+      return ctx.body = {
+        code: 20000,
+        msg: 'success'
+      }
+    };
+
     await next();
     const logResTime = moment().format();
     loggerRes.info(

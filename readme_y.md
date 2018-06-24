@@ -248,6 +248,23 @@ response:
     }
 }
 
+<!-- page接口 -->
+request:
+url: http://localhost:7001/v1/pageSign
+method: post
+Headers: {
+    "Content-Type": "application/json",
+    "platform": "wechat",
+    "uid": "123",
+    "page": "123"
+}
+
+response:
+{
+    "code": 20000,
+    "msg": "success"
+}
+
 
 <!-- 问题 -->
 1.申请记录中的对于参加人是否有新状态（apply_status_to_user）字段，参与人有多个，一个数字无法表示，应该每个参与人绑定一个状态

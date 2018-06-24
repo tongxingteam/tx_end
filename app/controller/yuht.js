@@ -111,6 +111,13 @@ class YuhtController extends Controller {
       this.ctx.body = {code: 50000, msg: '服务器错误'};
     }
   }
+
+  // 记录页面标记
+  async pageSign(){
+    // 获取请求参数
+    const body = this.ctx.request.body;
+    this.ctx.body = {code: 60001, msg: '头部缺少页面标识字段'};
+  }
 }
 
 module.exports = YuhtController;

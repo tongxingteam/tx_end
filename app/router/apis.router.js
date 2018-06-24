@@ -48,4 +48,6 @@ module.exports = app => {
   router.post(`/${config.version}/queryMyRequestList`, controller.yuht.queryMyRequestList);
     // 对于我的评论
   router.post(`/${config.version}/queryCommentToMe`, controller.yuht.queryCommentToMe);
+  // 记录page
+  router.post(`/${config.version}/pageSign`, controller.yuht.pageSign);
 };
