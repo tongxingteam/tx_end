@@ -30,9 +30,10 @@ class JindwService extends Service {
         return {
                 list: list.map((trip)=>{
                     trip.trip_end_location = JSON.parse(trip.trip_end_location);
+                    trip.trip_create_time = trip.trip_create_time.slice(0, 10);
                     return trip;
                 }),
-                count: count
+                count: count[0]['trip_count']
             }
     }
     // 根据热词搜索行程列表
@@ -60,9 +61,10 @@ class JindwService extends Service {
         return {
                 list: list.map((trip)=>{
                     trip.trip_end_location = JSON.parse(trip.trip_end_location);
+                    trip.trip_create_time = trip.trip_create_time.slice(0, 10);
                     return trip;
                 }),
-                count: count
+                count: count[0]['trip_count']
             }    
     }
     // 查询行程详情
@@ -85,7 +87,9 @@ class JindwService extends Service {
             'trip_status'
         ];
         const trip = await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
-        trip.trip_end_location = JSON.parse(trip.trip_end_location);
+        if(trip !== null){
+            trip.trip_end_location = JSON.parse(trip.trip_end_location);
+        }
         return trip;
     }
     // 查询用户对于行程的状态
