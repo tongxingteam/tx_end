@@ -100,38 +100,21 @@ class FanhlController extends Controller {
   // 直接发布行程
   async publishTrip(){
     const { fanhl } = this.ctx.service;
-    const { trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
-      
-    let newTime = (new Date()).valueOf();
-    let trip_start_timeC = (new Date(trip_start_time)).valueOf()
-    let trip_end_timeC = (new Date(trip_end_time)).valueOf()
-    let trip_status = 1;
-
-    //结束
-    if(newTime > trip_end_timeC){
-      trip_status = 3;
-    }
-    
-    //进行中
-    if(newTime > trip_start_timeC && newTime < trip_end_timeC){
-      trip_status = 2;
-    }
-
+    let { trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
+    trip_end_location = JSON.stringify(trip_end_location);
     try{
-      let commentStatus = await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,trip_status)
-      
-      if(commentStatus == 1){
-        this.ctx.status = 200;
-        this.ctx.body = {code:20000,msg:'发布成功'}
-      }else{
-        this.ctx.status = 500;
-        this.ctx.body = {code:50010,msg:"发布失败"}
-      }
+      await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id);
     } catch(error){
-      console.log(error)
       this.ctx.status = 500;
-      this.ctx.body = {code:50000,msg:"服务器错误"}
+      const { message } = error;
+      if(message === '1'){
+        this.ctx.body = {code:50000,msg:"用户信息错误"};
+      }else{
+        this.ctx.body = {code:50000,msg:"发布失败"}
+      }
+      return;
     }
+    this.ctx.body = {code: 20000, msg: '发布成功'};
   }
   // 草稿的保存
   async saveTrip(){

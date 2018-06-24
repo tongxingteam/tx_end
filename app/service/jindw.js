@@ -9,7 +9,7 @@ class JindwService extends Service {
     async queryTripList(offset = 0, limit = 10){
         const { TRIP_DB } = this.config.mysql;
         const { mysql } = this.app;
-        return await mysql.select(TRIP_DB, {
+        const list = await mysql.select(TRIP_DB, {
             where: {'trip_status':1, 'trip_active':1},
             columns: [
                 'trip_id',
@@ -25,6 +25,10 @@ class JindwService extends Service {
             limit: limit,
             offset: offset,
             order: [['trip_start_time','desc']]
+        });
+        return list.map((trip)=>{
+            trip.trip_end_location = JSON.parse(trip.trip_end_location);
+            return trip;
         });
     }
     // 根据热词搜索行程列表
@@ -42,12 +46,16 @@ class JindwService extends Service {
             'trip_end_time',
             'trip_merber_count'
         ];
-        return await mysql.query(
-            `select ${fields.join(',')} from ${TRIP_DB} where trip_status = 1 and trip_active = 1 and LOCATE(:keyword, 'trip_start_location')>0 or LOCATE(:keyword, 'trip_end_location')>0 or LOCATE(:keyword, 'trip_other_desc')>0 order by trip_start_time desc limit :offset,:limit`, {
-                keyword: keyword,
-                offset: offset,
-                limit: limit
+        const list = await mysql.query(
+                `select ${fields.join(',')} from ${TRIP_DB} where trip_status = 1 and trip_active = 1 and LOCATE(:keyword, 'trip_start_location')>0 or LOCATE(:keyword, 'trip_end_location')>0 or LOCATE(:keyword, 'trip_other_desc')>0 order by trip_start_time desc limit :offset,:limit`, {
+                    keyword: keyword,
+                    offset: offset,
+                    limit: limit
             });
+        return list.map((trip)=>{
+            trip.trip_end_location = JSON.parse(trip.trip_end_location);
+            return trip;
+        });    
     }
     // 查询行程详情
     async queryTripDetail(trip_id){
@@ -68,7 +76,9 @@ class JindwService extends Service {
             'trip_other_desc',
             'trip_status'
         ];
-        return await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
+        const trip = await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
+        trip.trip_end_location = JSON.parse(trip.trip_end_location);
+        return trip;
     }
     // 查询用户对于行程的状态
     async queryUserStatusToTrip(user_id, trip_id){

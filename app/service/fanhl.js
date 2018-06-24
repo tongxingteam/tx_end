@@ -95,10 +95,16 @@ class FanhlService extends Service {
     }
 
     //新建行程列表
-    async insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,trip_status){
-        
-        const publishInfo = await this.queryUserInfo(['*'], trip_publish_user_id);
-        const trip_member_info = `[{"id":"${trip_publish_user_id}","user_wx_name":"${publishInfo.user_wx_name}","user_wx_portriat":"${publishInfo.user_wx_portriat}"}]`
+    async insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id){
+        const publishInfo = await this.queryUserInfo([
+            'user_wx_name',
+            'user_wx_portriat'
+        ], trip_publish_user_id);
+        if(publishInfo === null){
+            throw new Error(1);
+            return;
+        }
+        const trip_member_info = `[{"id":"${trip_publish_user_id}","user_wx_name":"${publishInfo.user_wx_name}","user_wx_portriat":"${publishInfo.user_wx_portriat}"}]`;
         const { TRIP_DB } = this.config.mysql;
         const { mysql } = this.app;
         const trip_id = uuid.uuid;
@@ -110,7 +116,7 @@ class FanhlService extends Service {
             trip_end_time,
             trip_member_count,
             trip_other_desc,
-            trip_status,
+            trip_status: 1,
             publish_user_id:trip_publish_user_id,
             publish_user_wx_name:publishInfo.user_wx_name,
             publish_user_wx_portriat:publishInfo.user_wx_portriat,
@@ -121,8 +127,11 @@ class FanhlService extends Service {
             trip_apply_news:0,
             trip_comment_news:0,
             trip_change_publisher:0
-        })
-        return insertStatus.affectedRows
+        });
+        if(insertStatus.affectedRows === 0){
+            throw new Error(2);
+            return;
+        };
     }
 }
 
