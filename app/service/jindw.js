@@ -20,7 +20,7 @@ class JindwService extends Service {
                 'trip_end_location',
                 'trip_start_time',
                 'trip_end_time',
-                'trip_merber_count'
+                'trip_member_count'
             ],
             limit: limit,
             offset: offset,
@@ -48,7 +48,7 @@ class JindwService extends Service {
             'trip_end_location',
             'trip_start_time',
             'trip_end_time',
-            'trip_merber_count'
+            'trip_member_count'
         ];
         const list = await mysql.query(
                 `select ${fields.join(',')} from ${TRIP_DB} where trip_status = 1 and trip_active = 1 and LOCATE(:keyword, 'trip_start_location')>0 or LOCATE(:keyword, 'trip_end_location')>0 or LOCATE(:keyword, 'trip_other_desc')>0 order by trip_start_time desc limit :offset,:limit`, {
