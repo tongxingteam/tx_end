@@ -100,6 +100,7 @@ class FanhlController extends Controller {
   async publishTrip(){
     const { fanhl } = this.ctx.service;
     let { trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
+    trip_start_location = JSON.stringify(trip_start_location);
     trip_end_location = JSON.stringify(trip_end_location);
     try{
       await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id);
