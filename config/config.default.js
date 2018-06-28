@@ -33,6 +33,14 @@ module.exports = appInfo => {
         password: '',
         db: 0
       }
+    },
+    wxInfo: { // 微信小程序信息
+      appid: "wx45a3c0812c6d6f0b",
+      secret: 456
+    },
+    token_i: {
+      skey: "qwe",
+      gkey: "asd"
     }
   }
 };

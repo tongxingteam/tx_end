@@ -13,7 +13,7 @@ class YuhtController extends Controller {
     // console.log(user_id, currentPage, pageSize, typeof(pageSize)=="number", !typeof(pageSize)=="number");
     if(!user_id || !currentPage || !pageSize){
       console.log("参数不合法");
-      return this.ctx.body = {code: 40001, msg: '参数不合法'};
+      return this.ctx.body = {code: 70001, msg: '参数不合法'};
     }
 
     try{
@@ -36,7 +36,7 @@ class YuhtController extends Controller {
     // 判断参数是否合法
     if(!user_id || !currentPage || !pageSize){
       console.log("参数不合法");
-      return this.ctx.body = {code: 40001, msg: '参数不合法'};
+      return this.ctx.body = {code: 70001, msg: '参数不合法'};
     }
     try{
       // 等待数据库返回结果
@@ -57,7 +57,7 @@ class YuhtController extends Controller {
     // 判断参数是否合法
     if(!user_id || !currentPage || !pageSize){
       console.log("参数不合法");
-      return this.ctx.body = {code: 40001, msg: '参数不合法'};
+      return this.ctx.body = {code: 70001, msg: '参数不合法'};
     }
     try{
       // 等待数据库返回结果
@@ -78,7 +78,7 @@ class YuhtController extends Controller {
     // 判断参数是否合法
     if(!user_id || !currentPage || !pageSize){
       console.log("参数不合法");
-      return this.ctx.body = {code: 40001, msg: '参数不合法'};
+      return this.ctx.body = {code: 70001, msg: '参数不合法'};
     }
     try{
       // 等待数据库返回结果
@@ -99,7 +99,7 @@ class YuhtController extends Controller {
     // 判断参数是否合法
     if(!user_id || !currentPage || !pageSize){
       console.log("参数不合法");
-      return this.ctx.body = {code: 40001, msg: '参数不合法'};
+      return this.ctx.body = {code: 70001, msg: '参数不合法'};
     }
     try{
       // 等待数据库返回结果
@@ -117,6 +117,27 @@ class YuhtController extends Controller {
     // 获取请求参数
     const body = this.ctx.request.body;
     this.ctx.body = {code: 60001, msg: '头部缺少页面标识字段'};
+  }
+
+  // 登录
+  async login(){
+    // 获取service
+    const { yuht } = this.ctx.service;
+    // 获取请求参数
+    const { code } = this.ctx.request.body;
+    // 判断参数是否合法
+    if(!code){
+      this.ctx.body = {code: 70001, msg: '参数不合法'};
+    };
+    try{
+      this.ctx.body = "接口开发中";
+      return;
+      const result = await yuht.requestUserJsCode2Session(code);
+      this.ctx.body = result;
+    }catch(err){
+      console.log(err);
+      this.ctx.body = {code: 50003, msg: '服务器调用其他接口错误,' + err};
+    }
   }
 }
 
