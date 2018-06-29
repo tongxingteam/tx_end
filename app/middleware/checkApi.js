@@ -16,34 +16,27 @@ module.exports = options => {
 
         // 验证token
         const { token } = ctx.header;
-        console.log(token);
+        console.log(token, "token2");
         if(token != undefined && token != "undefined"){
             // 登录失效
             if(token == "" || token == null || token == "null" || token == false || token == "false" ){
-            // 未登录
-            ctx.body = {
-                    code: 60004,
-                    msg: '未登录',
-                };
+                // 未登录
+                ctx.body = {code: 60004, msg: '未登录'};
                 return;                
             }else{
                 // 已经登录
-                ctx.body = {
-                    code: 20000,
-                    msg: '验证登录开发中',
-                };
-                return;
+                // ctx.body = {code: 20000,msg: '验证登录开发中'};
+                // return;
                 // 该函数有效返回token解析出的数据，无效返回false
-                var Effectiveness = Effectiveness(token);
-                // 登录失效
-                if(!Effectiveness){
-                    ctx.body = {
-                        code: 60003,
-                        msg: '登录失效',
-                    };
+                var verifyToken = await ctx.service.yuht.verifyToken(token);
+                console.log(verifyToken, "verifyToken2");
+                if(verifyToken.err){
+                    // token 解析错误
+                    ctx.body = {code: 60003, msg: verifyToken.err};
                     return;
                 }else{
-                    ctx.request.body.user_id = Effectiveness.user_id
+                    // token 解析成功，主动添加user_id
+                    ctx.request.body.user_id = verifyToken.user_id;
                 }
             }
         };

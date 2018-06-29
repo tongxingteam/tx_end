@@ -128,35 +128,46 @@ class YuhtService extends Service {
 
     // 请求微信openid
     async requestUserJsCode2Session(code) {
+        // 引入信息
         const {
             wxInfo,
             token_i
+        } = this.app.config;
+        const {
+            USER_DB
+        } = this.config.mysql;
+        const {
+            mysql
         } = this.app;
 
         // 请求参数
         const option = `appid=${wxInfo.appid}&secret=${wxInfo.secret}&js_code=${code}&grant_type=authorization_code`;
 
         // 请求微信接口
-        var result = await request(`https://api.weixin.qq.com/sns/jscode2session?${option}`, function (error, response, body) {
-            console.log(error);
-            console.log(response);
-            console.log(body);
-            if (!error && response.statusCode == 200) {
-                const result = {
-                    "openid": "OPENID",
-                    "session_key": "SESSIONKEY",
-                };
-                return result;
-            } else {
-                return {
-                    "code": 50003,
-                    "msg": error
-                };
-            };
-        });
+        // var result = await request(`https://api.weixin.qq.com/sns/jscode2session?${option}`, function (error, response, body) {
+        //     console.log(body);
+        //     const result = {
+        //         "openid": "123456789",
+        //         "session_key": "abcdefg",
+        //     };
+        //     return result;
+        //     if (!error && response.statusCode == 200) {
+        //         // const result = body;
+        //         // return result;
+        //     } else {
+        //         return {
+        //             "code": 50003,
+        //             "msg": error
+        //         };
+        //     };
+        // });
+        const result = {
+            "openid": "123456789",
+            "session_key": "abcdefg",
+        };
 
         // 判断是否登陆过
-        const judgeOpnIdResult = await judgeOpnId(result);
+        const judgeOpnIdResult = await this.judgeOpnId(result);
 
         if (judgeOpnIdResult) {
             // 登陆过
@@ -164,9 +175,8 @@ class YuhtService extends Service {
             var data = Object.assign({
                 user_id: judgeOpnIdResult.user_id
             }, result);
-            console.log(data);
             // 生成token
-            const token = await vargenerateToken(data);
+            const token = await this.generateToken(data);
             return token;
         }
 
@@ -177,33 +187,52 @@ class YuhtService extends Service {
         var data = Object.assign({
             user_id
         }, result);
-        console.log(data);
+        // console.log(data);
         // 将用户保存到数据库
         const saveUserResult = await saveUser(data);
         if (!saveUserResult) {
             return "保存失败";
         }
         // 生成token
-        const token = await vargenerateToken(data);
+        const token = await generateToken(data);
         return token;
     }
 
     // 生成token
     async generateToken(data) {
+        // 引入信息
+        const {
+            wxInfo,
+            token_i
+        } = this.app.config;
         let created = Math.floor(Date.now() / 1000);
-        let cert = fs.readFileSync(path.join(__dirname, token_i.skey)); //私钥
-        let token = jwt.sign({
-            data,
-            exp: created + 3600 * 24
-        }, cert, {
-            algorithm: 'RS256'
+        // let cert = fs.readFileSync(path.join(__dirname, token_i.skey)); //私钥
+        let cert = token_i.skey; //私钥
+        let token = await jwt.sign(data, cert, {
+            // expiresIn: 60 * 60 * 24 // 24小时过期
+            expiresIn: 60 * 60 * 24
         });
-        return token;
+        console.log(token, "token1");
+        return {token};
     }
 
     // 通过openID，判断用户是否登陆过,如果登录过，返回userId，没有登陆过，返回false
     async judgeOpnId(data) {
-        return false;
+        // 引入数据库信息
+        const {
+            USER_DB
+        } = this.config.mysql;
+        const {
+            mysql
+        } = this.app;
+        const result = await mysql.query(`
+            SELECT * FROM ${USER_DB} WHERE user_openid = ${data.openid} limit 1;
+        `);
+        if (result.length == 0) {
+            return false;
+        } else {
+            return result[0];
+        }
     }
 
     //生成user_id
@@ -214,6 +243,26 @@ class YuhtService extends Service {
     // 保存用户
     async saveUser(data) {
         return true;
+    }
+
+    // 验证解析token方法
+    async verifyToken(token) {
+        // 引入信息
+        const {
+            wxInfo,
+            token_i
+        } = this.app.config;
+        //私钥
+        let cert = token_i.skey;
+        // 验证token
+        var result = await jwt.verify(token, cert, function (err, decode) {
+            if (err) { //  时间失效的时候/ 伪造的token
+                return {err: err};
+            } else {
+                return decode;
+            }
+        });
+        return result;
     }
 }
 

@@ -249,6 +249,7 @@ response:
 }
 
 <!-- page接口 -->
+<!-- 专门用于记录页面的接口，其他接口头部禁止传page，否则按page接口处理 -->
 request:
 url: http://localhost:7001/v1/pageSign
 method: post
@@ -257,6 +258,29 @@ Headers: {
     "platform": "wechat",
     "uid": "123",
     "page": "123"
+}
+param: {
+	"code": "b019406067d511e89c437132ae595195",  // 微信的code
+}
+
+response:
+{
+    "code": 20000,
+    "msg": "success",
+    "data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTIzIiwib3BlbmlkIjoiMTIzNDU2Nzg5Iiwic2Vzc2lvbl9rZXkiOiJhYmNkZWZnIiwiaWF0IjoxNTMwMjY2MTM0LCJleHAiOjE1MzAyNjYzMTR9.Argm2toW0CiBnCgAYexYdQvqflH2ZOKg_oogZNMF4BY"
+    }
+}
+
+<!-- login接口 -->
+<!-- 用于获取token的接口，不需要token的接口，禁止在头部传token，否则token失效，接口会调用失败 -->
+<!-- 传了token的接口，可不用传user_id, 后台可识别用户，传了将被覆盖 -->
+request:
+url: http://localhost:7001/v1/login
+method: post
+Headers: {
+    "Content-Type": "application/json",
+    "platform": "wechat",
 }
 
 response:

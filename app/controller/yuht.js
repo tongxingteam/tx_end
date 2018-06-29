@@ -130,8 +130,8 @@ class YuhtController extends Controller {
       this.ctx.body = {code: 70001, msg: '参数不合法'};
     };
     try{
-      this.ctx.body = "接口开发中";
-      return;
+      // this.ctx.body = "接口开发中";
+      // return;
       const result = await yuht.requestUserJsCode2Session(code);
       this.ctx.body = result;
     }catch(err){
