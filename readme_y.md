@@ -259,18 +259,13 @@ Headers: {
     "uid": "123",
     "page": "123"
 }
-param: {
-	"code": "b019406067d511e89c437132ae595195",  // 微信的code
-}
 
 response:
 {
     "code": 20000,
-    "msg": "success",
-    "data": {
-        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTIzIiwib3BlbmlkIjoiMTIzNDU2Nzg5Iiwic2Vzc2lvbl9rZXkiOiJhYmNkZWZnIiwiaWF0IjoxNTMwMjY2MTM0LCJleHAiOjE1MzAyNjYzMTR9.Argm2toW0CiBnCgAYexYdQvqflH2ZOKg_oogZNMF4BY"
-    }
+    "msg": "success"
 }
+
 
 <!-- login接口 -->
 <!-- 用于获取token的接口，不需要token的接口，禁止在头部传token，否则token失效，接口会调用失败 -->
@@ -283,10 +278,17 @@ Headers: {
     "platform": "wechat",
 }
 
+param: {
+	"code": "b019406067d511e89c437132ae595195",  // 微信的code
+}
+
 response:
 {
     "code": 20000,
-    "msg": "success"
+    "msg": "success",
+    "data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTIzIiwib3BlbmlkIjoiMTIzNDU2Nzg5Iiwic2Vzc2lvbl9rZXkiOiJhYmNkZWZnIiwiaWF0IjoxNTMwMjY2MTM0LCJleHAiOjE1MzAyNjYzMTR9.Argm2toW0CiBnCgAYexYdQvqflH2ZOKg_oogZNMF4BY"
+    }
 }
 
 
