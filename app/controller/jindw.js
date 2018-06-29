@@ -60,7 +60,13 @@ class JindwController extends Controller {
       if(trip === null){
         this.ctx.body = {code: 40004, msg: '不存在的记录'};
       }else{
-        this.ctx.body = {...trip, apply_status_to_add: apply_status}
+        // 判断行程是否是自己发布的
+        if(user_id == trip.publish_user_id){
+          const self_trip = true;
+        }else{
+          const self_trip = false;          
+        }
+        this.ctx.body = {...trip, apply_status_to_add: apply_status, self_trip}
       }
     }catch(error){
       console.log(error);

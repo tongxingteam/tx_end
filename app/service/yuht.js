@@ -144,26 +144,11 @@ class YuhtService extends Service {
         const option = `appid=${wxInfo.appid}&secret=${wxInfo.secret}&js_code=${code}&grant_type=authorization_code`;
 
         // 请求微信接口
-        // var result = await request(`https://api.weixin.qq.com/sns/jscode2session?${option}`, function (error, response, body) {
-        //     console.log(body);
-        //     const result = {
-        //         "openid": "123456789",
-        //         "session_key": "abcdefg",
-        //     };
-        //     return result;
-        //     if (!error && response.statusCode == 200) {
-        //         // const result = body;
-        //         // return result;
-        //     } else {
-        //         return {
-        //             "code": 50003,
-        //             "msg": error
-        //         };
-        //     };
-        // });
-        const result = {
-            "openid": "123456789",
-            "session_key": "abcdefg",
+        var result = await this.wx_req(option);
+        result = JSON.parse(result);
+        // 判断请求微信是否失败
+        if(!result.openid){
+            throw result.errcode + ',' + result.errmsg;
         };
 
         // 判断是否登陆过
@@ -174,7 +159,7 @@ class YuhtService extends Service {
             // 拼接入住信息
             var data = Object.assign({
                 user_id: judgeOpnIdResult.user_id
-            }, result);
+            }, result);           
             // 生成token
             const token = await this.generateToken(data);
             return token;
@@ -182,20 +167,47 @@ class YuhtService extends Service {
 
         // 未登录过
         // 生成user_id
-        const user_id = await generateUid();
+        const user_id = await this.generateUid();
         // 拼接入住信息
         var data = Object.assign({
             user_id
         }, result);
         // console.log(data);
         // 将用户保存到数据库
-        const saveUserResult = await saveUser(data);
+        const saveUserResult = await this.saveUser(data);
         if (!saveUserResult) {
             return "保存失败";
         }
         // 生成token
-        const token = await generateToken(data);
+        const token = await this.generateToken(data);
         return token;
+    }
+
+    // 调用微信接口
+    async wx_req(option) {
+        var result;
+        var result = await new Promise(function(res, rej){
+            request(`https://api.weixin.qq.com/sns/jscode2session?${option}`, function (error, response, body) {
+                console.log(body, "微信返回的数据");
+                // const result = {
+                //     "openid": "123456789",
+                //     "session_key": "abcdefg",
+                // };
+                // return result;
+                console.log(1);
+                if (!error && response.statusCode == 200) {
+                    res(body)
+                } else {
+                    res({
+                        "code": 50003,
+                        "msg": error
+                    })
+                };
+            });
+        }) 
+        console.log(result);
+        console.log(2);
+        return result;
     }
 
     // 生成token
@@ -242,6 +254,33 @@ class YuhtService extends Service {
 
     // 保存用户
     async saveUser(data) {
+        const {
+            USER_DB
+        } = this.config.mysql;
+        const {
+            mysql
+        } = this.app;
+        console.log(data);
+        var data = {
+            user_id: data.user_id,
+            user_phone: "",
+            user_openid: data.openid,
+            user_session_key: data.session_key,
+            user_nick_name: "",
+            user_sex: 0,
+            user_wx_id: "",
+            user_wx_portriat: "",
+            user_wx_name: "",
+            user_level: 0,
+            user_score: 0,
+            user_create_time: new Date(),
+            user_last_login_time: new Date(),
+            user_agent: "",
+            user_disabled_end_time: new Date(),
+            user_active: 1
+        };
+        console.log(data);
+        const result = await mysql.insert(USER_DB, data);
         return true;
     }
 
