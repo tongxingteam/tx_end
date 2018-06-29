@@ -57,6 +57,8 @@ http://www.runoob.com/http/http-status-codes.html
 60000 请求headers错误  
 60001 头部缺少字段  
 60002 客户端类型错误  
+60003 登录失效
+60004 未登录
 
 70000 请求body参数错误  
 70001 缺少参数  
