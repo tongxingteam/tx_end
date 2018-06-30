@@ -36,7 +36,7 @@ module.exports = appInfo => {
     },
     wxInfo: { // 微信小程序信息
       appid: "wx45a3c0812c6d6f0b",
-      secret: 456
+      secret: "d332d231486e8690f9956f535a25740d"
     },
     token_i: {
       skey: "qwe",
