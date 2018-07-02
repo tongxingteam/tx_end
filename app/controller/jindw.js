@@ -62,7 +62,13 @@ class JindwController extends Controller {
       }else{
         // 判断行程是否是自己发布的
         const self_trip = user_id === trip.publish_user_id;
-        this.ctx.body = {...trip, apply_status_to_add: apply_status, self_trip};
+        this.ctx.body = {
+          code: 20000,
+          msg: 'success',
+          ...trip,
+          apply_status_to_add: apply_status,
+          self_trip
+        };
       }
     }catch(error){
       console.log(error);
