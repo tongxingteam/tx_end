@@ -84,11 +84,7 @@ class JindwService extends Service {
             'trip_other_desc',
             'trip_status'
         ];
-        const trip = await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
-        if(trip !== null){
-            trip.trip_end_location = JSON.parse(trip.trip_end_location);
-        }
-        return trip;
+        return await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
     }
     // 查询用户对于行程的状态
     async queryUserStatusToTrip(user_id, trip_id){
