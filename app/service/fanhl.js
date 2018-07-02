@@ -40,8 +40,12 @@ class FanhlService extends Service {
     async updateTrip(where,options){
         const { TRIP_DB } = this.config.mysql;
         const { mysql } = this.app;
-        let changeStatus = await mysql.update(TRIP_DB, options, { where })
-        return changeStatus.affectedRows;
+        const changeStatus = await mysql.update(TRIP_DB, options, { where });
+        if(changeStatus.affectedRows === 0){
+            throw new Error(1);
+        }else if(changeStatus.affectedRows !== 1){
+            throw new Error(2);
+        }
     }
 
     async quitTrip(applyWhere,applyOptions,tripWhere,tripOptions){
@@ -94,8 +98,8 @@ class FanhlService extends Service {
         return insertStatus.affectedRows;
     }
 
-    //新建行程列表
-    async insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id){
+    //新建行程列表(或者草稿)
+    async insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_status,trip_publish_user_id){
         const publishInfo = await this.queryUserInfo([
             'user_wx_name',
             'user_wx_portriat'
@@ -116,7 +120,7 @@ class FanhlService extends Service {
             trip_end_time,
             trip_member_count,
             trip_other_desc,
-            trip_status: 1,
+            trip_status,
             publish_user_id:trip_publish_user_id,
             publish_user_wx_name:publishInfo.user_wx_name,
             publish_user_wx_portriat:publishInfo.user_wx_portriat,
@@ -132,6 +136,32 @@ class FanhlService extends Service {
             throw new Error(2);
             return;
         };
+    }
+    // 修改已经发布的行程(修改行程信息表与申请记录表)
+    async editPublishedTrip(trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_edit_time,trip_other_desc){
+        const { TRIP_DB, APPLY_DB } = this.config.mysql;
+        const { mysql } = this.app;
+        await mysql.beginTransactionScope(async conn => {
+            const updateTrip = await conn.update(TRIP_DB, {
+                trip_start_location,
+                trip_end_location,
+                trip_start_time,
+                trip_end_time,
+                trip_member_count,
+                trip_other_desc,
+                trip_edit_time
+            }, {
+                where: {
+                    trip_id,
+                    trip_active: 1,
+                    trip_status: 1
+                }
+            });
+            if(updateTrip.affectedRows === 0){
+                throw new Error(1);
+            }
+            const updateApply = await conn.query(`update ${APPLY_DB} set apply_trip_is_edit = 1 where apply_trip_id = '${trip_id}' and apply_status_to_user < 2`);
+        }, this.ctx); 
     }
 }
 
