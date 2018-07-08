@@ -5,7 +5,7 @@ const request = require('request');
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-var uuid = require('node-uuid');
+const uuid = require('../util/uuid');
 
 class YuhtService extends Service {
     // 查询我发起的行程列表
@@ -129,16 +129,9 @@ class YuhtService extends Service {
     // 请求微信openid
     async requestUserJsCode2Session(code) {
         // 引入信息
-        const {
-            wxInfo,
-            token_i
-        } = this.app.config;
-        const {
-            USER_DB
-        } = this.config.mysql;
-        const {
-            mysql
-        } = this.app;
+        const { wxInfo, token_i } = this.app.config;
+        const { USER_DB } = this.config.mysql;
+        const { mysql } = this.app;
 
         // 请求参数
         const option = `appid=${wxInfo.appid}&secret=${wxInfo.secret}&js_code=${code}&grant_type=authorization_code`;
@@ -170,7 +163,7 @@ class YuhtService extends Service {
 
         // 未登录过
         // 生成user_id
-        const user_id = await this.generateUid();
+        const user_id = uuid.uuid;
         // 拼接入住信息
         var data = Object.assign({
             user_id
@@ -248,11 +241,6 @@ class YuhtService extends Service {
         } else {
             return result[0];
         }
-    }
-
-    //生成user_id
-    async generateUid() {
-        return uuid.v1();
     }
 
     // 保存用户
