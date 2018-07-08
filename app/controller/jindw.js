@@ -79,7 +79,7 @@ class JindwController extends Controller {
     const { jindw } = this.ctx.service;
     const { trip_id, user_id, publisher_id, user_apply_content } = this.ctx.request.body;
     try {
-      await jindw.insertUserApply(trip_id, user_id, publisher_id, user_apply_content);
+      await jindw.insertUserApply(trip_id, user_id, publisher_id, user_apply_content || "");
       this.ctx.body = {code: 20000, msg: '申请成功'};
     } catch (error) {
       let body = null;

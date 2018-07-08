@@ -108,7 +108,7 @@ class FanhlController extends Controller {
       trip_end_time,
       trip_member_count,
       trip_other_desc,
-      trip_publish_user_id 
+      user_id
     } = this.ctx.request.body;
     const trip_status = 1;
     if(typeof trip_id === 'undefined'){
@@ -122,7 +122,7 @@ class FanhlController extends Controller {
           trip_member_count,
           trip_other_desc,
           trip_status,
-          trip_publish_user_id
+          user_id
         );
         this.ctx.body = {code: 20000, msg: '发布成功'};
       } catch(error){
