@@ -4,7 +4,7 @@ module.exports = appInfo => {
   return {
     version: 'v1',
     keys: appInfo.name + '_1527593394240_2392', // 用于设置cookie的key名称
-    middleware: [ 'apiLogger', 'checkApi' ], // 对请求加入中间件过滤
+    middleware: ['checkApi', 'apiLogger'], // 对请求加入中间件过滤
     checkApi: {
       version: 'v1'
     },
