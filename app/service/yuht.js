@@ -127,7 +127,7 @@ class YuhtService extends Service {
     }
 
     // 请求微信openid
-    async requestUserJsCode2Session(code) {
+    async requestUserJsCode2Session(code, userInfo) {
         // 引入信息
         const { wxInfo, token_i } = this.app.config;
         const { USER_DB } = this.config.mysql;
@@ -154,7 +154,9 @@ class YuhtService extends Service {
             // 拼接入住信息
             var data = Object.assign({
                 user_id: judgeOpnIdResult.user_id
-            }, result);           
+            }, result);
+            // 更新用户微信信息
+            this.updateUserInfo(result.openid, userInfo);
             // 生成token
             const token = await this.generateToken(data);
             return token;
@@ -170,7 +172,7 @@ class YuhtService extends Service {
         }, result);
         // console.log(data);
         // 将用户保存到数据库
-        const saveUserResult = await this.saveUser(data);
+        const saveUserResult = await this.saveUser(data, userInfo);
         if (!saveUserResult) {
             return "保存失败";
         }
@@ -244,7 +246,7 @@ class YuhtService extends Service {
     }
 
     // 保存用户
-    async saveUser(data) {
+    async saveUser(data, userInfo) {
         const {
             USER_DB
         } = this.config.mysql;
@@ -258,10 +260,10 @@ class YuhtService extends Service {
             user_openid: data.openid,
             user_session_key: data.session_key,
             user_nick_name: "",
-            user_sex: 0,
+            user_sex: userInfo.gender,
             user_wx_id: "",
-            user_wx_portriat: "",
-            user_wx_name: "",
+            user_wx_portriat: userInfo.avatarUrl,
+            user_wx_name: userInfo.nickName,
             user_level: 0,
             user_score: 0,
             user_create_time: new Date(),
@@ -293,6 +295,30 @@ class YuhtService extends Service {
             }
         });
         return result;
+    }
+
+    // 保存微信用户信息
+    async updateUserInfo(open_id, userInfo){
+        const {
+            USER_DB
+        } = this.config.mysql;
+        const {
+            mysql
+        } = this.app;
+        // 数据
+        const data = {
+            user_sex: userInfo.gender,
+            user_wx_name: userInfo.nickName,
+            user_wx_portriat: userInfo.avatarUrl
+        };
+        // 条件
+        const options = {
+            where: {
+              user_openid: open_id
+            }
+        };
+        // 更新数据库
+        const result = await mysql.update(USER_DB, data, options);
     }
 }
 

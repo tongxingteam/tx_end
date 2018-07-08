@@ -124,7 +124,7 @@ class YuhtController extends Controller {
     // 获取service
     const { yuht } = this.ctx.service;
     // 获取请求参数
-    const { code } = this.ctx.request.body;
+    const { code, userInfo } = this.ctx.request.body;
     // 判断参数是否合法
     if(!code){
       this.ctx.body = {code: 70001, msg: '参数不合法'};
@@ -132,7 +132,7 @@ class YuhtController extends Controller {
     try{
       // this.ctx.body = "接口开发中";
       // return;
-      const result = await yuht.requestUserJsCode2Session(code);
+      const result = await yuht.requestUserJsCode2Session(code, userInfo);
       this.ctx.body = result;
     }catch(err){
       console.log(err);

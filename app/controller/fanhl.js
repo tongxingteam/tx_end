@@ -170,7 +170,7 @@ class FanhlController extends Controller {
       trip_end_time,
       trip_member_count,
       trip_other_desc,
-      trip_publish_user_id 
+      user_id 
     } = this.ctx.request.body;
     const trip_create_time = moment().format();
     const trip_edit_time = trip_create_time;
@@ -186,7 +186,7 @@ class FanhlController extends Controller {
           trip_member_count,
           trip_other_desc,
           trip_status,
-          trip_publish_user_id);
+          user_id);
         this.ctx.body = {code: 20000, msg: '保存成功'};
       } catch (error) {
         const { message } = error;

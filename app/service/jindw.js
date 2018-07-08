@@ -90,7 +90,8 @@ class JindwService extends Service {
     async queryUserStatusToTrip(user_id, trip_id){
         const { APPLY_DB } = this.config.mysql;
         const { mysql } = this.app;
-        return await mysql.queryOne(`select apply_status_to_add from ${APPLY_DB} where apply_active = 1 and user_id = '${user_id}' and apply_trip_id = '${trip_id}'`);
+        const result = await mysql.queryOne(`select apply_status_to_add from ${APPLY_DB} where apply_active = 1 and user_id = '${user_id}' and apply_trip_id = '${trip_id}'`);
+        return result === null ? -1 : result.apply_status_to_add;
     }
     // 查询用户基本信息
     async queryUserInfo(columns, user_id){
