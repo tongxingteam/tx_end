@@ -145,11 +145,13 @@ class YuhtService extends Service {
 
         // 请求微信接口
         var result = await this.wx_req(option);
+        console.log(result);
         result = JSON.parse(result);
         // 判断请求微信是否失败
         if(!result.openid){
             throw result.errcode + ',' + result.errmsg;
         };
+        console.log(1);
 
         // 判断是否登陆过
         const judgeOpnIdResult = await this.judgeOpnId(result);
@@ -164,6 +166,7 @@ class YuhtService extends Service {
             const token = await this.generateToken(data);
             return token;
         }
+        console.log(2);
 
         // 未登录过
         // 生成user_id
@@ -238,7 +241,7 @@ class YuhtService extends Service {
             mysql
         } = this.app;
         const result = await mysql.query(`
-            SELECT * FROM ${USER_DB} WHERE user_openid = ${data.openid} limit 1;
+            SELECT * FROM ${USER_DB} WHERE user_openid = '${data.openid}' limit 1;
         `);
         if (result.length == 0) {
             return false;
