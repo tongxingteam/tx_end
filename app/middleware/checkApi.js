@@ -35,6 +35,7 @@ module.exports = options => {
                     ctx.body = {code: 60003, msg: verifyToken.err};
                     return;
                 }else{
+                    console.log(verifyToken.user_id, "check");
                     // token 解析成功，主动添加user_id
                     ctx.request.body.user_id = verifyToken.user_id;
                     ctx.header.uid = verifyToken.user_id;

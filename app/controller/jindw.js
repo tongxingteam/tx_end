@@ -105,12 +105,13 @@ class JindwController extends Controller {
   // 获取申请列表(对于发起人)
   async queryTripApplyList(){
     const { jindw } = this.ctx.service;
-    let { trip_id, currentPage = 1, pageSize = 10 } = this.ctx.request.body;
+    let { trip_id, currentPage = 1, pageSize = 10, user_id } = this.ctx.request.body;
+    console.log(user_id, "controller");
     currentPage = parseInt(currentPage) || 1;
     pageSize = parseInt(pageSize) || 10;
     let offset = (currentPage - 1) * pageSize;
     try {
-      const applyList = await jindw.queryTripApplyList(trip_id, offset, pageSize);
+      const applyList = await jindw.queryTripApplyList(trip_id, offset, pageSize, user_id);
       this.ctx.body = applyList;
     } catch (error) {
       console.log(error);
