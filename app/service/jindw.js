@@ -137,7 +137,7 @@ class JindwService extends Service {
         }
     }
     // 获取行程的申请列表
-    async queryTripApplyList(trip_id, offset, limit){
+    async queryTripApplyList(trip_id, offset, limit, user_id){
         const { APPLY_DB } = this.config.mysql;
         const { mysql } = this.app;
         const columns = [
@@ -148,8 +148,8 @@ class JindwService extends Service {
             'apply_status_to_add',
             "date_format(apply_create_time, '%Y-%m-%d %H:%i:%s') as apply_create_time"
         ];
-        const count = await mysql.query(`select count(apply_id) as apply_count from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !=user_id and apply_active = 1`);
-        const list =  await mysql.query(`select ${columns.join(',')} from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !=user_id and apply_active = 1 order by apply_create_time desc limit ${offset},${limit}`);
+        const count = await mysql.query(`select count(apply_id) as apply_count from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !='${user_id}' and apply_active = 1`);
+        const list =  await mysql.query(`select ${columns.join(',')} from ${APPLY_DB} where apply_trip_id = '${trip_id}' and apply_publisher_id !='${user_id}' and apply_active = 1 order by apply_create_time desc limit ${offset},${limit}`);
         return {
             list,
             count: count[0]['apply_count']
