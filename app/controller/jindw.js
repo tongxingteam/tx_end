@@ -61,16 +61,18 @@ class JindwController extends Controller {
         this.ctx.body = {code: 40004, msg: '不存在的记录'};
       }else{
         // 判断行程是否是自己发布的
-        if(user_id == trip.publish_user_id){
-          const self_trip = true;
-        }else{
-          const self_trip = false;          
-        }
-        this.ctx.body = {...trip, apply_status_to_add: apply_status, self_trip}
+        const self_trip = user_id === trip.publish_user_id;
+        this.ctx.body = {
+          code: 20000,
+          msg: 'success',
+          ...trip,
+          apply_status_to_add: apply_status,
+          self_trip
+        };
       }
     }catch(error){
       console.log(error);
-      this.ctx.status = 500;
+      this.ctx.status = 200;
       this.ctx.body = {code: 50000, msg: '服务器错误'};
     }
   }

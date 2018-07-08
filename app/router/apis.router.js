@@ -35,10 +35,10 @@ module.exports = app => {
   router.post(`/${config.version}/merberComment`, controller.fanhl.merberComment);
   // 发布行程
   router.post(`/${config.version}/publishTrip`, controller.fanhl.publishTrip);
-  // 草稿保存
-  router.post(`/${config.version}/saveTrip`, controller.fanhl.saveTrip);
+    // 保存为草稿
+  router.post(`/${config.version}/saveAsDraft`, controller.fanhl.saveAsDraft);
   //草稿发布
-  router.post(`/${config.version}/publishSaveTrip`, controller.fanhl.publishSaveTrip)
+  router.post(`/${config.version}/publishDraftToTrip`,controller.fanhl.publishDraftToTrip)
   /**
    * 余宏图 实现的接口
    */

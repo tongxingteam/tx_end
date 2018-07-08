@@ -84,11 +84,7 @@ class JindwService extends Service {
             'trip_other_desc',
             'trip_status'
         ];
-        const trip = await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
-        if(trip !== null){
-            trip.trip_end_location = JSON.parse(trip.trip_end_location);
-        }
-        return trip;
+        return await mysql.queryOne(`select ${columns.join(',')} from ${TRIP_DB} where trip_id='${trip_id}' and trip_active=1`);
     }
     // 查询用户对于行程的状态
     async queryUserStatusToTrip(user_id, trip_id){
@@ -102,7 +98,7 @@ class JindwService extends Service {
         const { mysql } = this.app;
        return await mysql.queryOne(`select ${columns.join(',')} from ${USER_DB} where user_id = '${user_id}' and user_active = 1`);
     }
-    // 更新申请记录为参团状态
+    // 添加一条申请记录
     async insertUserApply(trip_id, user_id, publisher_id, user_apply_content){
         const [user, publisher, apply] = await Promise.all([
             this.queryUserInfo(['user_wx_name', 'user_wx_portriat'], user_id),

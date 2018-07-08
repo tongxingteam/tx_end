@@ -32,11 +32,6 @@ module.exports = options => {
     const logFlag = utiluuid.uuid;
     const logReqTime = moment().format();
 
-    // 判断是否有页面标识
-    let pageSign = ctx.header['page'];
-    if (!pageSign) {
-      pageSign = false;
-    }
     loggerReq.info(
       [
         logFlag,
@@ -48,17 +43,12 @@ module.exports = options => {
         uid,
         platform,
         userAgent,
-        pageSign
+        'notFound'
       ].join('|')
     );
-    if (pageSign) {
-      return ctx.body = {
-        code: 20000,
-        msg: 'success'
-      }
-    };
 
     await next();
+    
     const logResTime = moment().format();
     loggerRes.info(
       [

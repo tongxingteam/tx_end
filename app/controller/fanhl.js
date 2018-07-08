@@ -1,5 +1,6 @@
 'use strict';
 
+const moment = require('moment');
 const Controller = require('egg').Controller;
 
 class FanhlController extends Controller {
@@ -96,105 +97,186 @@ class FanhlController extends Controller {
       this.ctx.body = {code:50000,msg:"服务器错误"}
     }
   }
-  // 直接发布行程
+  // 直接发布行程(包含修改行程的请求)
   async publishTrip(){
     const { fanhl } = this.ctx.service;
-    let { trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
-    trip_start_location = JSON.stringify(trip_start_location);
-    trip_end_location = JSON.stringify(trip_end_location);
+    const {
+      trip_id,
+      trip_start_location,
+      trip_end_location,
+      trip_start_time,
+      trip_end_time,
+      trip_member_count,
+      trip_other_desc,
+      trip_publish_user_id 
+    } = this.ctx.request.body;
+    const trip_status = 1;
+    if(typeof trip_id === 'undefined'){
+      // 发布新的行程信息
+      try{
+        await fanhl.insertTrip(
+          trip_start_location,
+          trip_end_location,
+          trip_start_time,
+          trip_end_time,
+          trip_member_count,
+          trip_other_desc,
+          trip_status,
+          trip_publish_user_id
+        );
+        this.ctx.body = {code: 20000, msg: '发布成功'};
+      } catch(error){
+        const { message } = error;
+        if(message === '1'){
+          this.ctx.body = {code:50010,msg:"用户信息错误"};
+        }else{
+          this.ctx.body = {code:50000,msg:"发布失败"}
+        }
+        console.error(error);
+      }
+    }else{
+      // 修改行程信息
+      const trip_edit_time = moment().format('YYYY-MM-DD HH:mm:ss');
+      try {
+        await fanhl.editPublishedTrip(
+          trip_id,
+          trip_start_location,
+          trip_end_location,
+          trip_start_time,
+          trip_end_time,
+          trip_member_count,
+          trip_edit_time,
+          trip_other_desc);
+        this.ctx.body = {code: 20000, msg: '修改成功'};
+      } catch (error) {
+        const { message } = error;
+        if(message === '1'){
+          this.ctx.body = {code: 50010, msg: '未找到合法的行程记录'};
+        }else{
+          this.ctx.body = {code: 50000, msg: '服务异常'};
+        }
+        console.error(error);
+      }
+    }
+  }
+  // 保存为草稿
+  async saveAsDraft(){
+    const { fanhl } = this.ctx.service;
+    const {
+      trip_id,
+      trip_start_location,
+      trip_end_location,
+      trip_start_time,
+      trip_end_time,
+      trip_member_count,
+      trip_other_desc,
+      trip_publish_user_id 
+    } = this.ctx.request.body;
+    const trip_create_time = moment().format();
+    const trip_edit_time = trip_create_time;
+    const trip_status = 0;
+    if(typeof trip_id === 'undefined'){
+      // 新的草稿记录
+      try {
+        await fanhl.insertTrip(
+          trip_start_location,
+          trip_end_location,
+          trip_start_time,
+          trip_end_time,
+          trip_member_count,
+          trip_other_desc,
+          trip_status,
+          trip_publish_user_id);
+        this.ctx.body = {code: 20000, msg: '保存成功'};
+      } catch (error) {
+        const { message } = error;
+        if(message === '1'){
+          this.ctx.body = {code: 50010, msg: '不存在的用户操作'};
+        }else if(message === '2'){
+          this.ctx.body = {code: 50020, msg: '保存草稿失败'};
+        }else{
+          this.ctx.body = {code: 50000, msg: '服务异常'};
+        }
+        console.error(error);
+      }
+    }else{
+      // 二次编辑并保存为草稿
+       // 数据集
+      const options = {
+        trip_start_location,
+        trip_end_location,
+        trip_start_time,
+        trip_end_time,
+        trip_member_count,
+        trip_other_desc,
+        trip_create_time,
+        trip_edit_time
+      };
+      const where = {
+        trip_id,
+        trip_active: 1,
+        trip_status: 0
+      };
+      try {
+        await fanhl.updateTrip( where, options );
+        this.ctx.body = {code: 20000, msg: '保存成功'};
+      } catch (error) {
+        const { message } = error;
+        if(message === '1'){
+          this.ctx.body = {code: 50010, msg: '不存在的草稿记录'};
+        }else if(message === '0'){
+          this.ctx.body = {code: 50020, msg: '保存草稿失败'};
+        }else{
+          this.ctx.body = {code: 50000, msg: '服务异常'};
+        }
+      }
+    }
+  }
+
+  // 草稿发布为正常的行程
+  async publishDraftToTrip(){
+    const { fanhl } = this.ctx.service;
+    const { 
+      trip_id,
+      trip_start_location,
+      trip_end_location,
+      trip_start_time,
+      trip_end_time,
+      trip_member_count,
+      trip_other_desc
+    } = this.ctx.request.body;
+    const trip_create_time = moment().format('YYYY-MM-DD HH:mm:ss');
+    const trip_edit_time = trip_create_time;
+    const where = { 
+      trip_id, // 已经存在的trip_id
+      trip_active: 1, // 激活状态
+      trip_status: 0 // 草稿标识
+    };
+    const options = {
+      trip_start_location,
+      trip_end_location,
+      trip_start_time,
+      trip_end_time,
+      trip_member_count,
+      trip_other_desc,
+      trip_create_time,
+      trip_edit_time,
+      trip_status: 1,
+    }
     try{
-      await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id);
-    } catch(error){
+      await fanhl.updateTrip(where, options);
+      this.ctx.body = {code:20000, msg:'发布成功'};
+    }catch(error){
       const { message } = error;
       if(message === '1'){
-        this.ctx.body = {code:50000,msg:"用户信息错误"};
+        this.ctx.body = {code:50010, msg:"不存在的草稿记录"};
+      }else if(message === '2'){
+        this.ctx.body = {code:50020, msg:"发布失败"};
       }else{
-        this.ctx.body = {code:50000,msg:"发布失败"}
+        this.ctx.body = {code: 50000, msg: '服务异常'};
       }
-      console.error(error);
-      return;
+      console.log(error);
     }
-    this.ctx.body = {code: 20000, msg: '发布成功'};
-  }
-  // 草稿的保存
-  async saveTrip(){
-    const { fanhl } = this.ctx.service;
-    const { trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
-    //更新
-    if(trip_id.length !== 2){
-        const where = { trip_id,trip_active: 1}
-        const options = {trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_status:0}
-      try{
-        let updateTripStatus = await fanhl.updateTrip(where,options)
-        if(insertTripStatus == 1){
-          this.ctx.status = 200;
-          this.ctx.body = {code:20000,msg:'保存成功'}
-        }else{
-          this.ctx.status = 500;
-          this.ctx.body = {code:50010,msg:"保存失败"}
-        }
-      }catch(error){
-        console.log(error)
-        this.ctx.status = 500;
-        this.ctx.body = {code:50000,msg:"服务器错误"}
-      }
-    }else{
-    //新增
-      try{
-        let insertTripStatus = await fanhl.insertTrip(trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id,0)
-        
-        if(insertTripStatus == 1){
-          this.ctx.status = 200;
-          this.ctx.body = {code:20000,msg:'保存成功'}
-        }else{
-          this.ctx.status = 500;
-          this.ctx.body = {code:50010,msg:"保存失败"}
-        }
-      } catch(error){
-        console.log(error)
-        this.ctx.status = 500;
-        this.ctx.body = {code:50000,msg:"服务器错误"}
-      }
-    }
-
-  }
-
-  // 草稿的发布
-  async publishSaveTrip(){
-    const { fanhl } = this.ctx.service;
-    const { trip_id,trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id } = this.ctx.request.body;
-    let newTime = (new Date()).valueOf();
-    let trip_start_timeC = (new Date(trip_start_time)).valueOf()
-    let trip_end_timeC = (new Date(trip_end_time)).valueOf()
-    let trip_status = 1;
-
-    //结束
-    if(newTime > trip_end_timeC){
-      trip_status = 3;
-    }
-    
-    //进行中
-    if(newTime > trip_start_timeC && newTime < trip_end_timeC){
-      trip_status = 2;
-    }
-
-    const where = { trip_id,trip_active: 1}
-    const options = {trip_start_location,trip_end_location,trip_start_time,trip_end_time,trip_member_count,trip_other_desc,trip_publish_user_id}
-
-    try{
-      let updateTripStatus = await fanhl.updateTrip(where,options)
-    if(updateTripStatus == 1){
-      this.ctx.status = 200;
-      this.ctx.body = {code:20000,msg:'发布成功'}
-    }else{
-      this.ctx.status = 500;
-      this.ctx.body = {code:50010,msg:"发布失败"}
-    }
-  }catch(error){
-    console.log(error)
-    this.ctx.status = 500;
-    this.ctx.body = {code:50000,msg:"服务器错误"}
-  }
   }
 }
 
